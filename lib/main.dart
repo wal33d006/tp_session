@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:tp_session/user_controller.dart';
+import 'package:tp_session/user_model.dart';
 
 void main() {
   runApp(MyApp());
@@ -8,6 +10,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Flutter Demo',
       theme: ThemeData(
         primarySwatch: Colors.blue,
@@ -28,10 +31,21 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
 
+  List<User> _users;
+
+  bool _isLoading = false;
+
   void _incrementCounter() {
     setState(() {
       _counter++;
     });
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    _fetchUsers();
   }
 
   @override
@@ -40,25 +54,35 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         title: Text(widget.title),
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headline4,
-            ),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: Icon(Icons.add),
-      ),
+      body: _isLoading
+          ? Center(
+              child: CircularProgressIndicator(),
+            )
+          : ListView.builder(
+              itemCount: _users.length,
+              itemBuilder: (context, index) {
+                var user = _users[index];
+                return ListTile(
+                  leading: CircleAvatar(
+                    child: Text(user.id.toString()),
+                  ),
+                  title: Text(user.name),
+                  subtitle: Text(user.email),
+                );
+              }),
     );
+  }
+
+  void _fetchUsers() async {
+    setState(() {
+      _isLoading = true;
+    });
+    UsersController controller = UsersController();
+    var users = await controller.getUsers();
+
+    setState(() {
+      _users = users;
+      _isLoading = false;
+    });
   }
 }
